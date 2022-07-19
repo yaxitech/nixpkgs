@@ -161,7 +161,7 @@ in
 
       environment = {
         HOME = runtimeDir;
-        RUNNER_ROOT = runtimeDir;
+        RUNNER_ROOT = stateDir;
       };
 
       path = (with pkgs; [
@@ -248,7 +248,7 @@ in
                   --token-file "$STATE_DIRECTORY/${newConfigTokenFilename}" \
                   --url ${escapeShellArg cfg.url})
 
-                RUNNER_ROOT="$STATE_DIRECTORY" ${cfg.package}/bin/config.sh \
+                ${cfg.package}/bin/config.sh \
                   --unattended \
                   --disableupdate \
                   --work "$RUNTIME_DIRECTORY" \
