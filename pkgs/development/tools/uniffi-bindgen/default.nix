@@ -11,13 +11,13 @@
 
 rustPlatform.buildRustPackage rec {
   pname = "uniffi-bindgen";
-  version = "0.17.0";
+  version = "0.19.3";
 
   src = fetchFromGitHub {
     owner = "mozilla";
     repo = "uniffi-rs";
     rev = "v${version}";
-    hash = "sha256-EGyJrW0U/dnKT7OWgd8LehCyvj6mxud3QWbBVyhoK4Y=";
+    hash = "sha256-A6Zd1jfhoR4yW2lT5qYE3vJTpiJc94pK/XQmfE2QLFc=";
   };
 
   cargoLock.lockFile = ./Cargo.lock;
