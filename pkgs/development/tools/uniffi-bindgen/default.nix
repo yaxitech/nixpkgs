@@ -20,8 +20,7 @@ rustPlatform.buildRustPackage rec {
     hash = "sha256-EGyJrW0U/dnKT7OWgd8LehCyvj6mxud3QWbBVyhoK4Y=";
   };
 
-  cargoLock.lockFileContents = builtins.readFile ./Cargo.lock;
-  cargoHash = "sha256-Fw+yCAI32NdFKJGPuNU6t0FiEfohoVD3VQfInNJuooI=";
+  cargoLock.lockFile = ./Cargo.lock;
 
   cargoBuildFlags = [ "-p uniffi_bindgen" ];
   cargoTestFlags = [ "-p uniffi_bindgen" ];
