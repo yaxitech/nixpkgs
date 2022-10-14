@@ -10,6 +10,21 @@
 , pyyaml
 , six
 }:
+let
+  # Pulumi uses a pinned version because tests didn't pass with later versions, see
+  # https://github.com/pulumi/pulumi/issues/10301
+  grpcio-1_47 = grpcio.overrideAttrs (finalAttrs: previousAttrs: rec {
+    src = fetchFromGitHub {
+      owner = "grpc";
+      repo = "grpc";
+      rev = "v${version}";
+      hash = "sha256-fMYAos0gQelFMPkpR0DdKr4wPX+nhZSSqeaU4URqgto=";
+      fetchSubmodules = true;
+    };
+
+    version = "1.47.0";
+  });
+in
 buildPythonPackage rec {
   inherit (pulumi) version src;
 
@@ -21,7 +36,7 @@ buildPythonPackage rec {
     semver
     protobuf
     dill
-    grpcio
+    grpcio-1_47
     pyyaml
     six
   ];
