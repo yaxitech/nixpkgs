@@ -10095,6 +10095,8 @@ with pkgs;
 
   pulumi-bin = callPackage ../tools/admin/pulumi-bin { };
 
+  pulumiPackages = callPackage ../tools/admin/pulumi-packages{ };
+
   p0f = callPackage ../tools/security/p0f { };
 
   pngloss = callPackage ../tools/graphics/pngloss { };
