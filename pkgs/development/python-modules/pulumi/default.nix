@@ -1,6 +1,5 @@
 { lib
 , buildPythonPackage
-, fetchpatch
 , fetchFromGitHub
 , protobuf
 , dill
@@ -10,22 +9,7 @@
 , semver
 , pyyaml
 , six
-
-
-# for tests
-, go
-, pulumictl
-, pylint
-, pytest
-, pytest-timeout
-, wheel
-, pytest-asyncio
-
-, mypy
 }:
-let
-  data = import ./data.nix {};
-in
 buildPythonPackage rec {
   inherit (pulumi) version src;
 
@@ -42,18 +26,8 @@ buildPythonPackage rec {
     six
   ];
 
-  checkInputs = [
-    pulumi
-    pulumictl
-    mypy
-    go
-    pytest
-    pytest-timeout
-    pytest-asyncio
-    wheel
-  ];
+  sourceRoot = "source/sdk/python/lib";
 
-  sourceRoot="source/sdk/python/lib";
   # we apply the modifications done in the pulumi/sdk/python/Makefile
   # but without the venv code
   postPatch = ''
@@ -64,7 +38,7 @@ buildPythonPackage rec {
   # disabled because tests try to fetch go packages from the net
   doCheck = false;
 
-  pythonImportsCheck = ["pulumi"];
+  pythonImportsCheck = [ "pulumi" ];
 
   meta = with lib; {
     description = "Modern Infrastructure as Code. Any cloud, any language";
