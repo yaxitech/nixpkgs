@@ -5,7 +5,7 @@
 , protobuf
 , dill
 , grpcio
-, pulumi-bin
+, pulumi
 , isPy27
 , semver
 , pyyaml
@@ -27,16 +27,11 @@ let
   data = import ./data.nix {};
 in
 buildPythonPackage rec {
-  pname = "pulumi";
-  version = pulumi-bin.version;
-  disabled = isPy27;
+  inherit (pulumi) version src;
 
-  src = fetchFromGitHub {
-    owner = "pulumi";
-    repo = "pulumi";
-    rev = "v${pulumi-bin.version}";
-    sha256 = "sha256-vqEZEHTpJV65a3leWwYhyi3dzAsN67BXOvk5hnTPeuI=";
-  };
+  pname = "pulumi";
+
+  disabled = isPy27;
 
   propagatedBuildInputs = [
     semver
@@ -48,7 +43,7 @@ buildPythonPackage rec {
   ];
 
   checkInputs = [
-    pulumi-bin
+    pulumi
     pulumictl
     mypy
     go
