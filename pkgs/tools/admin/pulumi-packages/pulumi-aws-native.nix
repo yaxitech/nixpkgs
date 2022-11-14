@@ -4,10 +4,10 @@
 mkPulumiPackage rec {
   owner = "pulumi";
   repo = "pulumi-aws-native";
-  version = "0.38.0";
+  version = "0.40.2";
   rev = "v${version}";
-  hash = "sha256-v7jNPCrjtfi9KYD4RhiphMIpV23g/CBV/sKPBkMulu0=";
-  vendorHash = "sha256-Yu9tNakwXWYdrjzI6/MFRzVBhJAEOjsmq9iBAQlR0AI=";
+  hash = "sha256-TTHY2xIkyT5SWHCs6NmTOV7DtUwzPMexxKyXozX6M/0=";
+  vendorHash = "sha256-BM02e946ZTISwtd0Q01wJjxjAJkcQMBVHQuIURfEPZc=";
   cmdGen = "pulumi-gen-aws-native";
   cmdRes = "pulumi-resource-aws-native";
   extraLdflags = [
