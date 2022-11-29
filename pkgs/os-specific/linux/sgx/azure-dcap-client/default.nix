@@ -76,4 +76,12 @@ stdenv.mkDerivation rec {
   installFlags = [
     "DESTDIR=$(out)"
   ];
+
+  meta = with lib; {
+    description = "Interfaces between SGX SDKs and the Azure Attestation SGX Certification Cache";
+    homepage = "https://github.com/microsoft/azure-dcap-client";
+    maintainers = with maintainers; [ trundle veehaitch ];
+    platforms = [ "x86_64-linux" ];
+    license = [ licenses.mit ];
+  };
 }
