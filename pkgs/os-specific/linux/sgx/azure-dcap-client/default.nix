@@ -6,6 +6,7 @@
 , nlohmann_json
 , openssl
 , pkg-config
+, callPackage
 }:
 
 let
@@ -76,6 +77,8 @@ stdenv.mkDerivation rec {
   installFlags = [
     "DESTDIR=$(out)"
   ];
+
+  passthru.test-suite = callPackage ./test-suite.nix { };
 
   meta = with lib; {
     description = "Interfaces between SGX SDKs and the Azure Attestation SGX Certification Cache";
