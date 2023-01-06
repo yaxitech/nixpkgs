@@ -741,4 +741,5 @@ in {
   zookeeper = handleTest ./zookeeper.nix {};
   zrepl = handleTest ./zrepl.nix {};
   zsh-history = handleTest ./zsh-history.nix {};
+  dynamic-hostname = handleTest ./dynamic-hostname.nix {};
 }
