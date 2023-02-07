@@ -6,9 +6,9 @@ let
   cfg = config.services.envoy;
   format = pkgs.formats.json { };
   conf = format.generate "envoy.json" cfg.settings;
-  validateConfig = file:
+  validateConfig = required: file:
     pkgs.runCommand "validate-envoy-conf" { } ''
-      ${pkgs.envoy}/bin/envoy --log-level error --mode validate -c "${file}"
+      ${pkgs.envoy}/bin/envoy --log-level error --mode validate -c "${file}" ${lib.optionalString (!required) "|| true"}
       cp "${file}" "$out"
     '';
 
@@ -43,6 +43,16 @@ in
         Specify the configuration for Envoy in Nix.
       '';
     };
+
+    requireValidConfig = mkOption {
+      type = types.bool;
+      default = true;
+      description = lib.mdDoc ''
+        Whether a failure during config validation at build time is fatal.
+        When the config can't be checked during build time, for example when it includes
+        other files, disable this option.
+      '';
+    };
   };
 
   config = mkIf cfg.enable {
@@ -53,7 +63,7 @@ in
       requires = [ "network-online.target" ];
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
-        ExecStart = "${pkgs.envoy}/bin/envoy -c ${validateConfig conf}";
+        ExecStart = "${pkgs.envoy}/bin/envoy -c ${validateConfig cfg.requireValidConfig conf}";
         DynamicUser = true;
         Restart = "no";
         CacheDirectory = "envoy";
