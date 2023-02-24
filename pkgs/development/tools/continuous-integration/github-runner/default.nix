@@ -138,6 +138,8 @@ stdenv.mkDerivation rec {
     runHook postBuild
   '';
 
+  dontAutoPatchelf = true;
+
   doCheck = true;
 
   __darwinAllowLocalNetworking = true;
@@ -290,31 +292,41 @@ stdenv.mkDerivation rec {
     patchelf --replace-needed liblttng-ust.so.0 liblttng-ust.so $out/lib/libcoreclrtraceptprovider.so
   '';
 
-  postFixup = ''
-    fix_rpath() {
-      patchelf --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" $out/lib/$1
-    }
-    wrap() {
-      makeWrapper $out/lib/$1 $out/bin/$1 \
-        --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath (buildInputs ++ [ openssl ])} \
-        "''${@:2}"
-    }
-  '' + lib.optionalString stdenv.isLinux ''
-    fix_rpath Runner.Listener
-    fix_rpath Runner.PluginHost
-    fix_rpath Runner.Worker
-  '' + ''
-    wrap Runner.Listener
-    wrap Runner.PluginHost
-    wrap Runner.Worker
-    wrap run.sh --run 'export RUNNER_ROOT=''${RUNNER_ROOT:-$HOME/.github-runner}'
-    wrap env.sh --run 'cd $RUNNER_ROOT'
+  postFixup =
+    let
+      runtimePath = lib.makeLibraryPath (buildInputs ++ lib.optional stdenv.isDarwin openssl);
+    in
+    ''
+      fix_rpath() {
+        patchelf --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" $out/lib/$1
+      }
+      wrap() {
+        makeWrapper $out/lib/$1 $out/bin/$1 \
+          ${lib.optionalString stdenv.isDarwin "--prefix LD_LIBRARY_PATH : ${runtimePath}"} \
+          "''${@:2}"
+      }
+    '' + (if stdenv.isLinux then ''
+      for name in Runner.Listener Runner.PluginHost Runner.Worker; do
+        fix_rpath $name
+        ln -s ../lib/$name $out/bin/$name
+      done  
+      autoPatchelf -- $out
+      patchelf --add-rpath ${runtimePath} $out/lib/libcoreclr.so
+      patchelf --add-rpath ${lib.makeLibraryPath [openssl]} $out/lib/libSystem.Security.Cryptography.Native.OpenSsl.so
+    '' else ''
+      wrap Runner.Listener
+      wrap Runner.PluginHost
+      wrap Runner.Worker
+    '') + ''
+      wrap run.sh --run 'export RUNNER_ROOT=''${RUNNER_ROOT:-$HOME/.github-runner}'
+      wrap env.sh --run 'cd $RUNNER_ROOT'
 
-    wrap config.sh --run 'export RUNNER_ROOT=''${RUNNER_ROOT:-$HOME/.github-runner}' \
-      --run 'mkdir -p $RUNNER_ROOT' \
-      --prefix PATH : ${lib.makeBinPath [ stdenv.cc ]} \
-      --chdir $out
-  '';
+      wrap config.sh --run 'export RUNNER_ROOT=''${RUNNER_ROOT:-$HOME/.github-runner}' \
+        --run 'mkdir -p $RUNNER_ROOT' \
+        --prefix PATH : ${lib.makeBinPath [ stdenv.cc ]} \
+        --prefix LD_LIBRARY_PATH : ${runtimePath} \
+        --chdir $out
+    '';
 
   # Script to create deps.nix file for dotnet dependencies. Run it with
   # $(nix-build -A github-runner.passthru.createDepsFile)/bin/create-deps-file
