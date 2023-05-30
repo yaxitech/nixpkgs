@@ -23456,6 +23456,8 @@ with pkgs;
 
   boringssl = callPackage ../development/libraries/boringssl { };
 
+  aws-lc = callPackage ../development/libraries/aws-lc { };
+
   wolfssl = callPackage ../development/libraries/wolfssl {
     inherit (darwin.apple_sdk.frameworks) Security;
   };
