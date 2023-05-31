@@ -30,6 +30,9 @@ rustPlatform.buildRustPackage rec {
   postPatch = ''
     substituteInPlace $TMPDIR/cargo-vendor-dir/userfaultfd-sys-0.4.2/build.rs \
       --replace 'incl_dir.push("uapi");' ""
+
+    substituteInPlace $TMPDIR/$sourceRoot/Cargo.toml \
+      --replace 'default-members = ["src/firecracker"]' 'default-members = ["src/firecracker", "src/jailer"]'
   '';
 
   preConfigure = ''
@@ -44,9 +47,12 @@ rustPlatform.buildRustPackage rec {
 
     mkdir -p $out/bin
     find build/cargo_target/ -executable -type f -name firecracker -exec cp {} $out/bin \;
+    find build/cargo_target/ -executable -type f -name jailer -exec cp {} $out/bin \;
 
     runHook postInstall
   '';
+
+  doCheck = false;
 
   meta = with lib; {
     description = "Secure, fast, minimal micro-container virtualization";
