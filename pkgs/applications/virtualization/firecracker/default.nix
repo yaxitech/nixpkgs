@@ -1,50 +1,51 @@
-{ fetchurl, lib, stdenv }:
-
-let
-  version = "1.3.1";
-  # nixpkgs-update: no auto update
-
-  suffix = {
-    x86_64-linux = "x86_64";
-    aarch64-linux = "aarch64";
-  }."${stdenv.hostPlatform.system}" or (throw "Unsupported system: ${stdenv.hostPlatform.system}");
-
-  baseurl = "https://github.com/firecracker-microvm/firecracker/releases/download";
-
-  dlbin = sha256: fetchurl {
-    url = "${baseurl}/v${version}/firecracker-v${version}-${suffix}.tgz";
-    sha256 = sha256."${stdenv.hostPlatform.system}";
-  };
-
-in
-stdenv.mkDerivation {
+{ stdenv
+, lib
+, fetchFromGitHub
+, rustPlatform
+, clang
+, openssl
+, linuxHeaders
+}:
+rustPlatform.buildRustPackage rec {
   pname = "firecracker";
-  inherit version;
+  version = "1.3.3";
 
-  sourceRoot = ".";
-  src = dlbin {
-    x86_64-linux = "sha256-VfTo3TaTqqBYT2/CZW0F5tGXaT4CyBcKBnP5Xqc1BLI=";
-    aarch64-linux = "sha256-ODIBa482X8bNhRyvdmIGGi/6BZYif02cf8tAWYRcI2k=";
+  src = fetchFromGitHub {
+    owner = "firecracker-microvm";
+    repo = pname;
+    rev = "v${version}";
+    hash = "sha256-h9BBfErt7s3IJ9myhyHc5is1962Icb/KutJc/lTvZrI=";
   };
 
-  dontConfigure = true;
+  cargoLock = {
+    lockFile = "${src}/Cargo.lock";
+    outputHashes = {
+      "kvm-bindings-0.6.0" = "sha256-w+u8FJ31N8C2MHZdOvFyVn59R/Cu3z5JOXxGvWYYeRM";
+      "micro_http-0.1.0" = "sha256-Mz/KoxUqaqB9BHru1I9pg0IYe4gwm6c6/tcMOC5aYyE=";
+    };
+  };
 
-  buildPhase = ''
-    mv release-v${version}-${suffix}/firecracker-v${version}-${suffix} firecracker
-    mv release-v${version}-${suffix}/jailer-v${version}-${suffix} jailer
-    chmod +x firecracker jailer
+  # userfaultfd-sys asserts `include/uapi` which does not exist in `linuxHeaders`
+  # but is also not required
+  postPatch = ''
+    substituteInPlace $TMPDIR/cargo-vendor-dir/userfaultfd-sys-0.4.2/build.rs \
+      --replace 'incl_dir.push("uapi");' ""
   '';
 
-  doCheck = true;
-  checkPhase = ''
-    ./firecracker --version
-    ./jailer --version
+  preConfigure = ''
+    export LINUX_HEADERS=${linuxHeaders}
+    export LIBCLANG_PATH="${clang.cc.lib}/lib"
+    export OPENSSL_INCLUDE_DIR="${openssl.dev}/include"
+    export OPENSSL_LIB_DIR="${lib.getLib openssl}/lib"
   '';
 
   installPhase = ''
+    runHook preInstall
+
     mkdir -p $out/bin
-    install -D firecracker $out/bin/firecracker
-    install -D jailer      $out/bin/jailer
+    find build/cargo_target/ -executable -type f -name firecracker -exec cp {} $out/bin \;
+
+    runHook postInstall
   '';
 
   meta = with lib; {
