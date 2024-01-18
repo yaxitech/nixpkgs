@@ -35261,6 +35261,8 @@ with pkgs;
 
   tart = callPackage ../applications/virtualization/tart { };
 
+  tartelet = callPackage ../applications/virtualization/tartelet { };
+
   viber = callPackage ../applications/networking/instant-messengers/viber { };
 
   wavebox = libsForQt5.callPackage ../applications/networking/instant-messengers/wavebox { };
