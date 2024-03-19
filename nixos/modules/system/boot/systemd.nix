@@ -534,8 +534,9 @@ in
         ${optionalString cfg.enableCgroupAccounting ''
           DefaultCPUAccounting=yes
           DefaultIOAccounting=yes
-          DefaultBlockIOAccounting=yes
           DefaultIPAccounting=yes
+          DefaultMemoryAccounting=yes
+          DefaultTasksAccounting=yes
         ''}
         DefaultLimitCORE=infinity
         ${optionalString (cfg.watchdog.device != null) ''
