@@ -120,6 +120,8 @@ let
       ++ lib.optionals withFirefox ["firefox"]
       ++ lib.optionals withWebkit ["webkit"]
       ++ lib.optionals withFfmpeg ["ffmpeg"];
+    inherit (stdenv.hostPlatform) system;
+    throwSystem = throw "Unsupported system: ${system}";
   in
     linkFarm
       "playwright-browsers"
@@ -130,7 +132,10 @@ let
           in lib.nameValuePair
             # TODO check platform for revisionOverrides
             "${name}-${value.revision}"
-            (callPackage ./${name}.nix { inherit suffix; inherit (value) revision;})
+            (callPackage ./${name}.nix {
+              inherit suffix system throwSystem;
+              inherit (value) revision;
+            })
           )
           browsers));
 in

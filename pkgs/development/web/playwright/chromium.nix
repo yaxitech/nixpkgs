@@ -3,8 +3,7 @@
 , makeFontsConf
 , jq
 , chromium
-, suffix
-, revision
+, ...
 }:
 let
   fontconfig = makeFontsConf {

@@ -20,7 +20,7 @@ fetch_driver_arch() {
 }
 
 replace_sha() {
-  sed -i "s|$1 = \".\{44,52\}\"|$1 = \"$2\"|" "$driver_file"
+  sed -i "s|$2 = \".\{44,52\}\"|$2 = \"$3\"|" "$1"
 }
 
 linux_driver="$(fetch_driver_arch "linux")"
@@ -40,10 +40,27 @@ unzip -p "$linux_driver_path" package/browsers.json \
     > "$playwright_dir/browsers.json"
 
 # Replace SHAs for the driver downloads
-replace_sha "x86_64-linux" "$linux_driver_hash"
-replace_sha "x86_64-darwin" "$(fetch_driver_arch "mac" | head -1)"
-replace_sha "aarch64-linux" "$(fetch_driver_arch "linux-arm64" | head -1)"
-replace_sha "aarch64-darwin" "$(fetch_driver_arch "mac-arm64" | head -1)"
+replace_sha "$driver_file" "x86_64-linux" "$linux_driver_hash"
+replace_sha "$driver_file" "x86_64-darwin" "$(fetch_driver_arch "mac" | head -1)"
+replace_sha "$driver_file" "aarch64-linux" "$(fetch_driver_arch "linux-arm64" | head -1)"
+replace_sha "$driver_file" "aarch64-darwin" "$(fetch_driver_arch "mac-arm64" | head -1)"
+
+update_browser() {
+    name="$1"
+    suffix="$2"
+    arm64_suffix="${3:-$2-arm64}"
+    revision="$(jq -r ".browsers.$name.revision" "$playwright_dir/browsers.json")"
+    replace_sha "$playwright_dir/$name.nix" "x86_64-linux" \
+        "$(nix-prefetch-url --unpack "https://playwright.azureedge.net/builds/$name/$revision/$name-$suffix.zip")"
+    replace_sha "$playwright_dir/$name.nix" "aarch64-linux" \
+        "$(nix-prefetch-url --unpack "https://playwright.azureedge.net/builds/$name/$revision/$name-$arm64_suffix.zip")"
+}
+
+# We currently use Chromium from nixpkgs, so we don't need to download it here
+# Likewise, darwin can be ignored here atm as we are using an impure install anyway.
+update_browser "firefox" "ubuntu-22.04"
+update_browser "webkit" "ubuntu-22.04"
+update_browser "ffmpeg" "linux"
 
 # Update the version stamps
 sed -i "s/version =\s*\"[^\$]*\"/version = \"$driver_version\"/" "$driver_file"

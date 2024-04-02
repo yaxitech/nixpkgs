@@ -1,4 +1,5 @@
-{ stdenv
+{ lib
+,  stdenv
 , fetchzip
 , fetchFromGitHub
 , makeWrapper
@@ -41,15 +42,15 @@
 , wayland-scanner
 , woff2
 , zlib
-
 , suffix
 , revision
+, system
+, throwSystem
 }:
 let
-  suffix' = if suffix == "linux"
-            then "ubuntu-22.04"
+  suffix' = if lib.hasPrefix "linux" suffix
+            then "ubuntu-22.04" + (lib.removePrefix "linux" suffix)
             else suffix;
-
   libvpx' = libvpx.overrideAttrs (finalAttrs: previousAttrs: {
     version = "1.12.0";
     src = fetchFromGitHub {
@@ -65,8 +66,11 @@ stdenv.mkDerivation {
   name = "webkit";
   src = fetchzip {
     url = "https://playwright.azureedge.net/builds/webkit/${revision}/webkit-${suffix'}.zip";
-    hash = "sha256-w+9Jf9nH+T3VPCzHopt5dPhwcRm6PLJ5fVM0w725Pjw=";
     stripRoot = false;
+    sha256 = {
+      x86_64-linux = "0g1yp6yw6d2kgmwv4g5s35qp1y3lg6ds5irc7kakvyf7v5zlkvy3";
+      aarch64-linux = "1jpy01msw5cl1www4s41g0mgjydl3frvmiy6dxgwq0qqf2zfz692";
+    }.${system} or throwSystem;
   };
 
   nativeBuildInputs = [ autoPatchelfHook patchelfUnstable makeWrapper];
