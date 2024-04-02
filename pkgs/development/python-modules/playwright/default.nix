@@ -1,5 +1,6 @@
 { lib
 , stdenv
+, nixosTests
 , auditwheel
 , buildPythonPackage
 , git
@@ -101,6 +102,7 @@ buildPythonPackage rec {
     tests = {
       driver = playwright-driver;
       browsers = playwright-driver.browsers;
+      inherit (nixosTests) playwright-python;
     };
     updateScript = ./update.sh;
   };
