@@ -1,16 +1,6 @@
 { stdenv
 , fetchzip
-, wrapGAppsHook
-, autoPatchelfHook
-, patchelfUnstable
-, gtk3
-, gnome
-, alsa-lib
-, dbus-glib
-, xorg
-, curl
-, libva
-, pciutils
+, firefox-bin
 , suffix
 , revision
 }:
@@ -27,23 +17,13 @@ stdenv.mkDerivation {
     stripRoot = false;
   };
 
-  nativeBuildInputs = [ wrapGAppsHook autoPatchelfHook patchelfUnstable];
-  buildInputs = [
-    gtk3
-    gnome.adwaita-icon-theme
-    alsa-lib
-    dbus-glib
-    xorg.libXtst
-  ];
-
-
-  # Firefox uses "relrhack" to manually process relocations from a fixed offset
-  patchelfFlags = [ "--no-clobber-old-sections" ];
-  runtimeDependencies = [
-    curl
-    libva.out
-    pciutils
-  ];
+  inherit (firefox-bin.unwrapped)
+    nativeBuildInputs
+    buildInputs
+    runtimeDependencies
+    appendRunpaths
+    patchelfFlags
+  ;
 
   buildPhase = ''
     cp -R . $out
