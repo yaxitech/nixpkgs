@@ -1,5 +1,6 @@
 { lib
 , stdenv
+, nixosTests
 , auditwheel
 , buildPythonPackage
 , git
@@ -77,6 +78,7 @@ buildPythonPackage rec {
 
   pythonRelaxDeps = [
     "pyee"
+    "greenlet"
   ];
 
   propagatedBuildInputs = [
@@ -100,6 +102,7 @@ buildPythonPackage rec {
     tests = {
       driver = playwright-driver;
       browsers = playwright-driver.browsers;
+      inherit (nixosTests) playwright-python;
     };
     updateScript = ./update.sh;
   };
@@ -109,7 +112,7 @@ buildPythonPackage rec {
     mainProgram = "playwright";
     homepage = "https://github.com/microsoft/playwright-python";
     license = licenses.asl20;
-    maintainers = with maintainers; [ techknowlogick yrd ];
+    maintainers = with maintainers; [ techknowlogick yrd phaer ];
     platforms = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
   };
 }
