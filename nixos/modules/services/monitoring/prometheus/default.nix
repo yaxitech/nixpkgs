@@ -1,5 +1,6 @@
 {
   config,
+  options,
   pkgs,
   lib,
   ...
@@ -1954,6 +1955,43 @@ in
         }
       )
     ];
+
+    warnings =
+      let
+        isDefaultValue =
+          optName:
+          let
+            opt = options.services.prometheus.${optName};
+          in
+          if opt.type.name == "submodule" then
+            all (
+              name:
+              name == "_module" || cfg.${optName}.${name} == opt.valueMeta.configuration.options.${name}.default
+            ) (attrNames opt.valueMeta.configuration.options)
+          else
+            cfg.${optName} == opt.default;
+      in
+      optional
+        (
+          cfg.configText != null
+          && any (name: !isDefaultValue name) [
+            "globalConfig"
+            "scrapeConfigs"
+            "remoteRead"
+            "remoteWrite"
+            "ruleFiles"
+            "alertmanagers"
+          ]
+        )
+        ''
+          Option `services.prometheus.configText` will overwrite all of the following options, of which at least one is set:
+            services.prometheus.globalConfig
+            services.prometheus.scrapeConfigs
+            services.prometheus.remoteRead
+            services.prometheus.remoteWrite
+            services.prometheus.ruleFiles
+            services.prometheus.alertmanagers
+        '';
 
     users.groups.prometheus.gid = config.ids.gids.prometheus;
     users.users.prometheus = {
