@@ -1955,6 +1955,31 @@ in
       )
     ];
 
+    warnings =
+      optional
+        (
+          !(
+            cfg.configText != null
+            ->
+              cfg.globalConfig == { }
+              && cfg.scrapeConfigs == [ ]
+              && cfg.remoteRead == [ ]
+              && cfg.remoteWrite == [ ]
+              && cfg.ruleFiles == [ ]
+              && cfg.alertmanagers == [ ]
+          )
+        )
+        ''
+          Option `services.prometheus.configText` will overwrite all of the
+          following options, of which at least one is set:
+            services.prometheus.globalConfig
+            services.prometheus.scrapeConfigs
+            services.prometheus.remoteRead
+            services.prometheus.remoteWrite
+            services.prometheus.ruleFiles
+            services.prometheus.alertmanagers
+        '';
+
     users.groups.prometheus.gid = config.ids.gids.prometheus;
     users.users.prometheus = {
       description = "Prometheus daemon user";
